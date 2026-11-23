@@ -27,24 +27,23 @@ function playYT() { if (player && player.playVideo) player.playVideo() }
 log('loading models...')
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),
-  faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),
   faceapi.nets.faceExpressionNet.loadFromUri(MODELS)
 ]).then(startVideo).catch(err => log('MODEL ERROR: ' + err))
 
 function startVideo() {
   log('starting camera...')
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } }, audio: false })
     .then(stream => { video.srcObject = stream; video.play() })
     .catch(err => log('CAMERA ERROR: ' + err))
 }
 
 video.addEventListener('playing', () => { log('camera on'); detect() }, { once: true })
 
-const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 })
+const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 })
 
 async function detect() {
   try {
-    const face = await faceapi.detectSingleFace(video, options).withFaceLandmarks().withFaceExpressions()
+    const face = await faceapi.detectSingleFace(video, options).withFaceExpressions()
 
     if (!face) {
       log('no face found')
@@ -61,6 +60,7 @@ async function detect() {
         if (!neutralSince) neutralSince = Date.now()
         if (Date.now() - neutralSince > 2000) {
           popup.classList.remove('show')
+          if (player && player.pauseVideo) player.pauseVideo()
           document.body.style.overflow = 'auto'
         }
       }
@@ -69,5 +69,5 @@ async function detect() {
     log('DETECT ERROR: ' + err)
   }
 
-  setTimeout(detect, 100)
+  setTimeout(detect, 250)
 }
