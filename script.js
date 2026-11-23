@@ -19,11 +19,9 @@ Promise.all([
 ]).then(startVideo)
 
 function startVideo() {
-  navigator.getUserMedia(
-    { video: {} },
-    stream => video.srcObject = stream,
-    err => console.error(err)
-  )
+  navigator.mediaDevices.getUserMedia({ video: {} })
+    .then(stream => video.srcObject = stream)
+    .catch(err => console.error(err))
 }
 
 video.addEventListener('play', () => {
@@ -32,6 +30,7 @@ video.addEventListener('play', () => {
     const face = detections[0]
     if (!face) return
     const deviation = 1 - face.expressions.neutral
+    console.log(deviation)
 
     if (deviation > 0.28) {
       popup.style.display = 'block'
