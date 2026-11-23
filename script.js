@@ -19,9 +19,9 @@ Promise.all([
 ]).then(startVideo)
 
 function startVideo() {
-  navigator.mediaDevices.getUserMedia({ video: {} })
-    .then(stream => video.srcObject = stream)
-    .catch(err => console.error(err))
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+    .then(stream => { video.srcObject = stream; video.play() })
+    .catch(err => alert(err))
 }
 
 video.addEventListener('play', () => {
