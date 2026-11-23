@@ -24,13 +24,14 @@ function startVideo() {
     .catch(err => alert(err))
 }
 
-video.addEventListener('play', () => {
-  setInterval(async () => {
-    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions()
-    const face = detections[0]
-    if (!face) return
+video.addEventListener('playing', detect, { once: true })
+
+async function detect() {
+  const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions()
+  const face = detections[0]
+
+  if (face) {
     const deviation = 1 - face.expressions.neutral
-    console.log(deviation)
 
     if (deviation > 0.28) {
       popup.style.display = 'block'
@@ -45,5 +46,7 @@ video.addEventListener('play', () => {
         document.body.style.overflow = 'auto'
       }
     }
-  }, 100)
-})
+  }
+
+  setTimeout(detect, 100)
+}
