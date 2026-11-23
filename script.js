@@ -3,26 +3,16 @@ const popup = document.getElementById('popup')
 const debug = document.getElementById('debug')
 const MODELS = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model'
 let neutralSince = null
-let player
 
 // add ?debug to the URL to see the status bar
 if (location.search.includes('debug')) debug.style.display = 'block'
 function log(t) { debug.textContent = t }
 window.onerror = (msg) => log('ERROR: ' + msg)
 
-// YouTube video: starts muted in the background, invisible until needed
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('yt', {
-    videoId: 'wdyxvfMKhI4',
-    playerVars: { autoplay: 1, mute: 1, loop: 1, playlist: 'wdyxvfMKhI4', controls: 0, rel: 0, playsinline: 1 },
-    events: { onReady: e => { e.target.mute(); e.target.playVideo() } }
-  })
-}
-
-// backup: if the phone blocked autoplay, the first tap starts it
-document.addEventListener('touchstart', playYT, { once: true })
-document.addEventListener('click', playYT, { once: true })
-function playYT() { if (player && player.playVideo) player.playVideo() }
+// first tap unlocks video playback on strict phones
+document.addEventListener('touchstart', unlock, { once: true })
+document.addEventListener('click', unlock, { once: true })
+function unlock() { popup.play().then(() => { if (!popup.classList.contains('show')) popup.pause() }).catch(() => {}) }
 
 log('loading models...')
 Promise.all([
@@ -53,14 +43,14 @@ async function detect() {
 
       if (deviation > 0.28) {
         popup.classList.add('show')
-        playYT()
+        popup.play().catch(() => {})
         document.body.style.overflow = 'hidden'
         neutralSince = null
       } else if (popup.classList.contains('show')) {
         if (!neutralSince) neutralSince = Date.now()
         if (Date.now() - neutralSince > 2000) {
           popup.classList.remove('show')
-          if (player && player.pauseVideo) player.pauseVideo()
+          popup.pause()
           document.body.style.overflow = 'auto'
         }
       }
